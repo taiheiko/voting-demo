@@ -1,4 +1,4 @@
-package com.github.taya_y.voting.dao;
+package com.github.terigina.voting.dao;
 
 import java.util.UUID;
 
