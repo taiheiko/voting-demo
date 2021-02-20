@@ -1,6 +1,10 @@
 package com.github.terigina.voting.dao;
 
-import org.jooq.*;
+import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.SQLDialect;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 
@@ -9,7 +13,11 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.UUID;
 
-import static org.jooq.impl.DSL.*;
+import static org.jooq.impl.DSL.count;
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.primaryKey;
+import static org.jooq.impl.DSL.table;
+import static org.jooq.impl.DSL.using;
 import static org.jooq.impl.SQLDataType.VARCHAR;
 
 public class H2VotingDAO implements IVotingDAO {
