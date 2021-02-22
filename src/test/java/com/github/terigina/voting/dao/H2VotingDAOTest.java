@@ -1,10 +1,12 @@
 package com.github.terigina.voting.dao;
 
+import com.github.terigina.voting.service.Color;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -25,21 +27,29 @@ class H2VotingDAOTest {
     @ParameterizedTest
     @MethodSource("votes")
     void shouldVote(UUID userId, String color) {
-        int votes = votingDao.getVotes(color);
-        votingDao.voteFor(userId, color);
-        assertEquals(votes + 1, votingDao.getVotes(color));
+        int votes = votingDao.getVotes(Color.RED);
+        votingDao.voteFor(userId, Color.RED);
+        assertEquals(votes + 1, votingDao.getVotes(Color.RED));
     }
 
     @Test
     void shouldReVote() {
         UUID userId = UUID.randomUUID();
-        final String red = "red";
-        final String green = "green";
-        votingDao.voteFor(userId, red);
-        int votesRed = votingDao.getVotes(red);
-        int votesGreen = votingDao.getVotes(green);
-        votingDao.voteFor(userId, green);
-        assertEquals(votesRed - 1, votingDao.getVotes(red), "Red votes should have decremented");
-        assertEquals(votesGreen + 1, votingDao.getVotes(green), "green votes should have incremented");
+        votingDao.voteFor(userId, Color.RED);
+        int votesRed = votingDao.getVotes(Color.RED);
+        int votesGreen = votingDao.getVotes(Color.GREEN);
+        votingDao.voteFor(userId, Color.GREEN);
+        assertEquals(votesRed - 1, votingDao.getVotes(Color.RED), "Red votes should have decremented");
+        assertEquals(votesGreen + 1, votingDao.getVotes(Color.GREEN), "green votes should have incremented");
+    }
+
+    @Test
+    void shouldGetVotes() {
+        Map<Color, Integer> votesBefore = votingDao.getVotes();
+        votingDao.voteFor(UUID.randomUUID(), Color.GREEN);
+        Map<Color, Integer> votesAfter = votingDao.getVotes();
+        assertEquals(votesBefore.getOrDefault(Color.RED, 0), votesAfter.getOrDefault(Color.RED, 0));
+        assertEquals(votesBefore.get(Color.GREEN) + 1, votesAfter.get(Color.GREEN));
+        assertEquals(votesBefore.getOrDefault(Color.BLUE, 0), votesAfter.getOrDefault(Color.BLUE, 0));
     }
 }

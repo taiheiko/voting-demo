@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const headers = {
   'Content-Type': 'application/json'
@@ -25,8 +25,8 @@ var options = new Vue({
       };
       fetch(`/vote/${choice}`, requestOptions)
         .then(res => {if (res.ok) {
-            console.log('Vote saved');
             this.markChecked(choice);
+            results.fetchResults();
           } else {
             console.log('Server responded with error');
           }
@@ -50,7 +50,7 @@ var options = new Vue({
     }).then(res => {if (!res.ok) throw new Error('Server responded with error ' + res.status); return res.json()})
       .then(data => {
       if (data.options) {
-        data.options.forEach(options => this.options.push({name: options, checked: false}));
+        data.options.forEach(option => this.options.push({name: option, checked: data.choice === option}));
       }
       this.ready = true;
       })
@@ -61,17 +61,27 @@ var options = new Vue({
 var results = new Vue({
   el: '#results',
   data: {
-    chartData: {'red': 1, 'green': 2, 'blue':0},
-    colors: ['#f77', '#7f7', '#77f']
+    chartData: {},
+    colors: [],
+    colorSchema: {'RED': '#f77', 'GREEN': '#7f7', 'BLUE': '#77f'},
+    ready: function() {
+      return Object.keys(this.chartData).reduce((acc, key) => acc + this.chartData[key], 0) > 0;
+    }
+  },
+  methods: {
+    fetchResults: function() {
+     fetch(`/vote/results`, {
+       method: 'GET',
+       headers,
+       credentials
+     }).then(res => {if (!res.ok) throw new Error('Server responded with error ' + res.status); return res.json()})
+       .then(data => {
+         this.chartData = data;
+         this.colors = Object.keys(data).map(c => this.colorSchema[c]);
+       }).catch(error => console.log(`Getting results failed: ${error.message}`));
+   }
   },
   mounted: function() {
-    fetch(`/vote/results`, {
-      method: 'GET',
-      headers,
-      credentials
-    }).then(res => {if (!res.ok) throw new Error('Server responded with error ' + res.status); return res.json()})
-      .then(data => {
-        this.chartData = data;
-      }).catch(error => console.log(`Getting results failed: ${error.message}`))
+    this.fetchResults();
   }
 });

@@ -1,8 +1,10 @@
 package com.github.terigina.voting.dao;
 
+import com.github.terigina.voting.service.Color;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
@@ -11,7 +13,11 @@ import org.jooq.impl.SQLDataType;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.jooq.impl.DSL.count;
 import static org.jooq.impl.DSL.field;
@@ -47,30 +53,54 @@ public class H2VotingDAO implements IVotingDAO {
     }
 
     @Override
-    public boolean voteFor(UUID userId, String color) {
+    public boolean voteFor(UUID userId, Color color) {
         return context.transactionResult(configuration -> {
             DSLContext ctx = using(configuration);
             ctx.deleteFrom(COLOR_VOTES_TABLE)
                     .where(USER_ID_FIELD.eq(userId))
                     .execute();
             int result = ctx.insertInto(COLOR_VOTES_TABLE, USER_ID_FIELD, COLOR_FIELD)
-                    .values(userId, color)
+                    .values(userId, color.name())
                     .execute();
             return result > 0;
         });
     }
 
     @Override
-    public int getVotes(String color) {
+    public int getVotes(Color color) {
         return context.select(count())
                 .from(COLOR_VOTES_TABLE)
-                .where(COLOR_FIELD.eq(color))
+                .where(COLOR_FIELD.eq(color.name()))
                 .fetchOne()
                 .value1();
     }
 
     @Override
+    public Optional<Color> getVote(UUID userId) {
+        Record1<String> resultSet = context.select(COLOR_FIELD)
+                .from(COLOR_VOTES_TABLE)
+                .where(USER_ID_FIELD.eq(userId))
+                .fetchOne();
+        if (resultSet != null) {
+            return Color.of(resultSet.value1());
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Map<Color, Integer> getVotes() {
+        return context.select(COLOR_FIELD, count())
+                .from(COLOR_VOTES_TABLE)
+                .where(COLOR_FIELD.in(Arrays.asList(Color.values())))
+                .groupBy(COLOR_FIELD)
+                .fetch()
+                .stream()
+                .collect(Collectors.toMap(r -> Color.of(r.value1()).get(), r -> r.value2()));
+    }
+
+    @Override
     public void close() throws Exception {
+        System.err.println("Closing DB Connection...");
         connection.close();
     }
 }

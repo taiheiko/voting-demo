@@ -17,7 +17,7 @@
         </div>
         <div id="results">
             <h4>Results</h4>
-            <pie-chart :data="chartData" :colors="colors"></pie-chart>
+            <pie-chart :data="chartData" :colors="colors" v-if="ready()"></pie-chart>
         </div>
     </div>
 </div>
