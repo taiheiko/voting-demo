@@ -2,6 +2,8 @@ package com.github.terigina.voting;
 
 import com.github.terigina.voting.service.VotingService;
 import org.eclipse.jetty.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Filter;
 import spark.Session;
 
@@ -15,12 +17,13 @@ import static spark.Spark.staticFiles;
 import static spark.Spark.stop;
 
 public class Application {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
     private static final int PORT = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
     private static final VotingService votingService = new VotingService();
     private static final DataToJsonConverter dataToJsonConverter = new DataToJsonConverter();
 
     static {
-        System.setProperty("org.slf4j.simpleLogger.log.org.eclipse.jetty.server.session", "debug");
+//        System.setProperty("org.slf4j.simpleLogger.log.org.eclipse.jetty.server.session", "debug");
     }
 
     public static void main(String[] args) {
@@ -47,7 +50,7 @@ public class Application {
 
     private static void addShutdownHook() {
         Runnable hook = () -> {
-            System.err.println("Stopping the App...");
+            LOGGER.warn("Stopping the App...");
             try {
                 votingService.close();
                 stop();

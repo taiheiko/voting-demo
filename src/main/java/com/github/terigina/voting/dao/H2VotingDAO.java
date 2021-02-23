@@ -9,6 +9,8 @@ import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -27,6 +29,7 @@ import static org.jooq.impl.DSL.using;
 import static org.jooq.impl.SQLDataType.VARCHAR;
 
 public class H2VotingDAO implements IVotingDAO {
+    private static final Logger LOGGER = LoggerFactory.getLogger(H2VotingDAO.class);
 
     private static final Table<Record> COLOR_VOTES_TABLE = table("color_votes");
     private static final Field<UUID> USER_ID_FIELD = field("user_id", SQLDataType.UUID.nullable(false));
@@ -100,7 +103,7 @@ public class H2VotingDAO implements IVotingDAO {
 
     @Override
     public void close() throws Exception {
-        System.err.println("Closing DB Connection...");
+        LOGGER.warn("Closing DB Connection...");
         connection.close();
     }
 }
