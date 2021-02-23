@@ -1,6 +1,7 @@
 package com.github.terigina.voting;
 
 import com.github.terigina.voting.service.VotingService;
+import org.eclipse.jetty.http.HttpStatus;
 import spark.Filter;
 import spark.Session;
 
@@ -31,7 +32,9 @@ public class Application {
             return dataToJsonConverter.convert(votingService.getOptions(req.session().attribute("user_id")));
         });
         post("/vote/:color", (req, res) -> {
-            votingService.vote(req.session().attribute("user_id"), req.params("color"));
+            if (!votingService.vote(req.session().attribute("user_id"), req.params("color"))) {
+                res.status(HttpStatus.BAD_REQUEST_400);
+            }
             return "";
         });
         get("/vote/results", (req, res) -> {

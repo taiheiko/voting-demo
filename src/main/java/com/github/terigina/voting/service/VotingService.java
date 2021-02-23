@@ -4,9 +4,9 @@ import com.github.terigina.voting.dao.H2VotingDAO;
 import com.github.terigina.voting.dao.IVotingDAO;
 import com.github.terigina.voting.model.responses.GetOptionsResponse;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 public class VotingService implements AutoCloseable {
@@ -22,19 +22,19 @@ public class VotingService implements AutoCloseable {
     }
 
     public GetOptionsResponse getOptions(UUID userId) {
-        Optional<Color> choice = votingDAO.getVote(userId);
-        return new GetOptionsResponse(choice);
+        return new GetOptionsResponse(votingDAO.getVote(userId));
     }
 
-    public void vote(UUID userId, String color) {
-        Color.of(color).ifPresent(value -> votingDAO.voteFor(userId, value));
+    public boolean vote(UUID userId, String color) {
+        return Color.of(color)
+                .filter(value -> votingDAO.voteFor(userId, value))
+                .isPresent();
     }
 
     public Map<Color, Integer> getResults() {
         Map<Color, Integer> votes = new HashMap<>(votingDAO.getVotes());
-        for (Color color : Color.values()) {
-            votes.putIfAbsent(color, 0);
-        }
+        Arrays.stream(Color.values())
+                .forEach(c -> votes.putIfAbsent(c, 0));
         return votes;
     }
 
